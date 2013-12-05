@@ -16,7 +16,7 @@ POST-request:
 ```
 http://ducking.com/
 ```
-Returns progress for file, in json, when this is done an URL containing the GET-path.
+Returns progress for file, in json, when this is done an URL containing the GET-path is appended.
 
 DELETE-request:
 ```
