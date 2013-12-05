@@ -12,15 +12,11 @@ http://ducking.com/xyz
 ```
 Returns a request for the download view for the file(s) associated with the id xyz.
 
-GET-request:
-```
-http://ducking.com/xyz 
-```
 POST-request:
 ```
 http://ducking.com/
 ```
-Returns progress for file, in json, when this is done an URL containing the GET-path
+Returns progress for file, in json, when this is done an URL containing the GET-path.
 
 DELETE-request:
 ```
