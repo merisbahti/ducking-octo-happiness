@@ -1,60 +1,47 @@
 package controllers
 
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent._
+import scala.collection._
+
 import play.api._
 import play.api.mvc._
 import play.api.libs._
+import play.api.libs.iteratee._
 
-import reactivemongo.api._
-import reactivemongo.bson._
-
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
-import scala.collection._
+import com.mongodb.casbah.Imports._
+import com.mongodb.casbah.gridfs.Imports._
+import com.novus.salat.global._
 
 object Application extends Controller {
 
 
-  def index = Action {
-    Ok(views.html.index())
-  }
+  def index() = Action {
+    val uri = MongoClientURI("mongodb://localhost:27017/")
+    val mongoClient =  MongoClient(uri)
+    val db = mongoClient("databaseName")
+    val coll = db("collectionName")
+    val gfs = GridFS(db)
 
-  def connect() {
-    import reactivemongo.api._
-    import scala.concurrent.ExecutionContext.Implicits.global
+    val f1 = future { 
+      gfs findOne { "contentType" $eq "text/plain" } 
+    }
 
-    // gets an instance of the driver
-    // (creates an actor system)
-    val driver = new MongoDriver
-    val connection = driver.connection(List("localhost"))
+    val f2 = future {
+      gfs findOne { "filename" $eq "licens" }
+    }
 
-    // Gets a reference to the database "plugin"
-    val db = connection("plugin")
+    Async {
+      for {
+        x1 <- f1
+        x2 <- f2
+      } yield {
 
-    // Gets a reference to the collection "acoll"
-    // By default, you get a BSONCollection.
-    val collection = db("acoll")
+        val xs = List(x1, x2).flatten map { x =>
+          x.toString + ":\n" + scala.io.Source.fromInputStream(x.inputStream).mkString("")
+        }
 
-    // Select only the documents which field 'firstName' equals 'Jack'
-    val query = BSONDocument("firstName" -> "Jack")
-    // select only the fields 'lastName' and '_id'
-    val filter = BSONDocument(
-      "lastName" -> 1,
-      "_id" -> 1)
-
-    // Get a cursor of BSONDocuments
-    val cursor = collection.find(query, filter).cursor[BSONDocument]
-    /* Let's enumerate this cursor and print a readable
-     * representation of each document in the response */
-    cursor.enumerate.apply(Iteratee.foreach { doc =>
-      println("found document: " + BSONDocument.pretty(doc))
-    })
-
-    // Or, the same with getting a list
-    val cursor2 = collection.find(query, filter).cursor[BSONDocument]
-    val futureList: Future[List[BSONDocument]] = cursor.toList
-    futureList.map { list =>
-      list.foreach { doc =>
-        println("found document: " + BSONDocument.pretty(doc))
+        Ok(xs.mkString("\n\nAND\n\n"))
       }
     }
   }
