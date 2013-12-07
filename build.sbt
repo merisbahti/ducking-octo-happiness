@@ -6,8 +6,8 @@ libraryDependencies ++= Seq(
   jdbc,
   anorm,
   cache,
-  "org.mongodb" %% "casbah" % "2.5.0",
-  "com.novus" %% "salat" % "1.9.4"
+  "org.reactivemongo" %% "reactivemongo" % "0.9" exclude("org.scala-stm", "scala-stm_2.10.0")
 )     
+
 
 play.Project.playScalaSettings
