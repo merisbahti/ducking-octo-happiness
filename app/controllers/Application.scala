@@ -19,45 +19,43 @@ object Application extends Controller {
     Ok(views.html.index())
   }
 
-/*  def upload = Action(parse.multipartFormData) { request =>
-    request.body.file("file").map { file=>
-      import java.io.File
-      val filename = file.filename 
-      val contentType = file.contentType
-      //picture.ref.moveTo(new File("/tmp/picture"))
-      Ok(filename + "\n" + contentType)
+  def upload = Action(parse.multipartFormData) { request =>
+    request.body.file("file").map { file =>
+      import java.io._
+      val uri = MongoClientURI("mongodb://localhost:27017/")
+      val mongoClient =  MongoClient(uri)
+      val db = mongoClient("databaseName")
+      val gridfs = GridFS(db)
+      val fileInputStream = new FileInputStream(file.ref.file)
+      gridfs(fileInputStream) { fh =>
+        fh.filename = file.filename
+        fh.contentType = file.contentType.getOrElse("unknown") 
+      }
+      Ok("localhost:9000/"+file.filename)
     }.getOrElse {
       Ok("no file");
     }
-  }*/
+  }
 
-  def sample() = Action {
+  def download(ref: String) = Action {
     val uri = MongoClientURI("mongodb://localhost:27017/")
     val mongoClient =  MongoClient(uri)
     val db = mongoClient("databaseName")
     val coll = db("collectionName")
     val gfs = GridFS(db)
 
-    val f1 = future { 
-      gfs findOne { "contentType" $eq "text/plain" } 
-    }
+    val f1 = gfs findOne { "filename" $eq ref }
 
-    val f2 = future {
-      gfs findOne { "filename" $eq "licens" }
-    }
-
-    Async {
-      for {
-        x1 <- f1
-        x2 <- f2
-      } yield {
-
-        val xs = List(x1, x2).flatten map { x =>
-          x.toString + ":\n" + scala.io.Source.fromInputStream(x.inputStream).mkString("")
-        }
-
-        Ok(xs.mkString("\n\nAND\n\n"))
-      }
-    }
+    Ok(f1.getOrElse("not found").toString)
   }
+
+  def list() = Action {
+    val uri = MongoClientURI("mongodb://localhost:27017/")
+    val mongoClient =  MongoClient(uri)
+    val db = mongoClient("databaseName")
+    val coll = db("collectionName")
+    val gfs = GridFS(db)
+    Ok(gfs.mkString("\n"))
+  } 
+
 }
