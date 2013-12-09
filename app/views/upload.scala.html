@@ -25,7 +25,7 @@ var upload = function(file) {
   fd.append("source", "web"); 
 
   var fileDiv = document.createElement("div");
-  fileDiv.className = "progress progress-striped";
+  fileDiv.className = "progress progress-striped active";
   var progressDiv = document.createElement("div");
   progressDiv.className = "progress-bar progress-bar-success";
   progressDiv.style.width = "0%"; 
@@ -48,16 +48,15 @@ var upload = function(file) {
   };
  
   xhr.onload = function() {
+      fileDiv.className="progress";
     if (this.status == 200) {
       console.log('Server got:', this.response);
       progressDiv.style.width = "100%";
-      fileDiv.className="progress";
       info.innerHTML = this.response;
     } else {
       console.log('Error: ', this.response);
-      fileDiv.className="progress";
       progressDiv.style.width = "100%";
-      progressDiv.classname ="progress-bar progress-bar-danger";
+      progressDiv.className ="progress-bar progress-bar-danger";
       info.innerHTML = "error";
     }
   };
