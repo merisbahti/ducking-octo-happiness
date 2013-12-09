@@ -16,6 +16,10 @@ import com.novus.salat.global._
 object Application extends Controller {
 
   def index() = Action {
+    Ok(views.html.upload())
+  }
+
+  def testIndex() = Action {
     Ok(views.html.index())
   }
 
@@ -31,7 +35,11 @@ object Application extends Controller {
         fh.filename = file.filename
         fh.contentType = file.contentType.getOrElse("unknown") 
       }
+      fileInputStream.close()
+      file.ref.file.delete()
+      mongoClient.close();
       Ok("localhost:9000/"+file.filename)
+      
     }.getOrElse {
       Ok("no file");
     }
@@ -43,9 +51,8 @@ object Application extends Controller {
     val db = mongoClient("databaseName")
     val coll = db("collectionName")
     val gfs = GridFS(db)
-
     val f1 = gfs findOne { "filename" $eq ref }
-
+    mongoClient.close;
     Ok(f1.getOrElse("not found").toString)
   }
 
@@ -55,7 +62,9 @@ object Application extends Controller {
     val db = mongoClient("databaseName")
     val coll = db("collectionName")
     val gfs = GridFS(db)
-    Ok(gfs.mkString("\n"))
+    val str = gfs.mkString("\n")
+    mongoClient.close();
+    Ok(str)
   } 
 
 }
