@@ -15,8 +15,23 @@ import com.novus.salat.global._
 
 object Application extends Controller {
 
-
   def index() = Action {
+    Ok(views.html.index())
+  }
+
+/*  def upload = Action(parse.multipartFormData) { request =>
+    request.body.file("file").map { file=>
+      import java.io.File
+      val filename = file.filename 
+      val contentType = file.contentType
+      //picture.ref.moveTo(new File("/tmp/picture"))
+      Ok(filename + "\n" + contentType)
+    }.getOrElse {
+      Ok("no file");
+    }
+  }*/
+
+  def sample() = Action {
     val uri = MongoClientURI("mongodb://localhost:27017/")
     val mongoClient =  MongoClient(uri)
     val db = mongoClient("databaseName")
